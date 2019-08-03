@@ -28,10 +28,10 @@ In this project the work is done in batches.
 
 ### Apache Arrow
 
-In this project `Apache Arrow` will be used and not `Parquet`, `JSON` or `CSV`.
+In this project `Apache Arrow` will be used and not `Parquet`, `JSON`.
 
 Why? Well simply, when utilising let's say `Parquet`. Which is a great dataformat, but it requires you to use a lot of `CPU` in 
-`serialization` and `deserialization`.
+`serialization` and `deserialization` since `PySpark` is being used.
 
 So to avoid that, let's use something that can be utilized in the same memory, here is where `arrow` comes in the picture.
 
@@ -40,6 +40,8 @@ Some benefits:
 * All systems utilize the same memory format
 * No overhead for cross-system communication
 * Projects can share functionality (eg: Parquet-to-Arrow reader)
+
+A great [video](https://www.youtube.com/watch?v=dPb2ZXnt2_U) explaining this!
 
 ### Featuretools
 

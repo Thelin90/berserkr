@@ -1,0 +1,23 @@
+version: '3.0'
+services:
+        # berserkr-app
+        berserkr-app:
+                container_name: berserkr-app
+                image: mat_app
+                build:
+                        context: ../../
+                        dockerfile: tools/docker/Dockerfile
+                depends_on:
+                  - minio
+                network_mode: "host"
+        # MinIO
+        minio:
+                container_name: minio
+                image: minio/latest
+                ports:
+                        - '127.0.0.1:9000'
+                networks:
+                  - berserkr-app-default
+
+networks:
+  berserkr-app-default:
