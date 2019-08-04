@@ -2,7 +2,7 @@
 
 ![Screenshot](/docs/img/berserkr.jpeg)
 
-In old `norse` berserkr is when a a viking warrior entered battle wearing nothing for armor but an animal skin.
+In old `norse` berserkr is when a viking warrior entered battle wearing nothing for armor but an animal skin.
 
 In this project, `berserkr` will tackle and perform massive machine learning at scale without fear
 
