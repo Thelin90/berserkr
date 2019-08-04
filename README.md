@@ -31,7 +31,7 @@ In this project the work is done in batches.
 In this project `Apache Arrow` will be used and not `Parquet`, `JSON`.
 
 Why? Well simply, when utilising let's say `Parquet`. Which is a great dataformat, but it requires you to use a lot of `CPU` in 
-`serialization` and `deserialization` since `PySpark` is being used.
+`serialization` and `deserialization`.
 
 So to avoid that, let's use something that can be utilized in the same memory, here is where `arrow` comes in the picture.
 
@@ -69,18 +69,39 @@ I a normal scenario this should be in its own repository but will keep on here j
 
 Utilizing `MinIO` to be able to run integration test towards `S3`.
 
+Run `MinIO` standalone as a docker:
+
+```bash
+docker run -p 9000:9000 --name minio1   -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE"   -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"   -v /mnt/data:/data   minio/minio server /data
+```
+
 ## docker-compose
 
 Building everything together with `docker-compose`.
 
 ## Run application
 
-Run manually
+Run manually by first initialise `virtualenv`  
 
 ```bash
-some command
+virtualenv venv -p python3.7
+source venv/bin/activate
 ```
 
+Then install dependency packages:
+
+Go to:
+```bash
+cd scripts
+```
+Run:
+```bash
+./run.sh
+```
+Run:
+```bash
+PYTHONPATH=. python src/main.py 
+```
 ## Tests
 
 Section to describe how to test the project.
