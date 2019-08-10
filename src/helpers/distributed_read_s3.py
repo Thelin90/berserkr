@@ -1,6 +1,7 @@
 from botocore.client import Config
 
-from pyspark.sql import SparkSession, Row
+from typing import List
+from pyspark import SparkContext
 import logging
 import boto3
 import os
@@ -8,13 +9,14 @@ import os
 
 def distributed_fetch(
     filepath: str,
-    s3_bucket: str,
-    endpoint_url: str,
-    aws_access_key_id: str,
-    aws_secret_access_key: str,
-    signature_version: str
+    s3_bucket,
+    endpoint_url,
+    signature_version,
+    aws_access_key_id,
+    aws_secret_access_key,
 ) -> object:
     """Function fetches file from s3
+    :rtype: object
     :param filepath: the s3 file path
     :param s3_bucket: the s3 bucket
     :param endpoint_url: specified endpoint
@@ -32,97 +34,84 @@ def distributed_fetch(
         aws_secret_access_key=aws_secret_access_key,
         config=Config(signature_version=signature_version))
 
-    split_filepath = filepath.split('{}/'.format(s3_bucket))
-
-    # Handle both local (Minio) and S3
-    # filepaths. When downloading files
-    # locally to smoke test, it does not
-    # contain 's3://'.
-    if len(split_filepath) > 1:
-        split_filepath = split_filepath[1]
-    else:
-        split_filepath = split_filepath[0]
-
     s3.Bucket(s3_bucket).download_file(
-        split_filepath,
+        filepath,
         base_path,
     )
+
+    # TODO: another PR to erase downloaded file via subprocess
+    #
+
+
+def get_bucket_files(
+    s3_bucket,
+    endpoint_url,
+    aws_access_key_id,
+    aws_secret_access_key,
+    signature_version,
+):
+    files = []
+    s3 = boto3.resource(
+        's3',
+        endpoint_url=endpoint_url,
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        config=Config(signature_version=signature_version))
+
+    # Bucket to use
+    bucket = s3.Bucket(s3_bucket)
+
+    for file in bucket.objects.all():
+        files.append(f'{file.key}')
+
+    return files
 
 
 class DistributedS3Reader(object):
 
-    def __init__(
-        self,
-        spark_session: SparkSession,
-        spark_context: SparkSession.sparkContext,
-        s3_bucket: str,
-        endpoint_url: str,
-        aws_access_key_id: str,
-        aws_secret_access_key: str,
-        signature_version: str,
-    ):
+    def __init__(self, spark_context: SparkContext):
         self.spark_context = spark_context
-        self.spark_session = spark_session
-        self.s3_bucket = s3_bucket
-        self.endpoint_url = endpoint_url
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
-        self.signature_version = signature_version
 
-    def get_bucket_files(self):
-        files = []
-
-        s3 = boto3.resource(
-            's3',
-            endpoint_url=self.endpoint_url,
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key,
-            config=Config(signature_version=self.signature_version)
-        )
-
-        ## Bucket to use
-        bucket = s3.Bucket(self.s3_bucket)
-
-        for file in bucket.objects.all():
-            files.append(file.key)
-
-        return files
-
-    def distributed_read_from_s3(self, files):
+    def distributed_read_from_s3(
+        self,
+        s3_bucket,
+        endpoint_url,
+        aws_access_key_id,
+        aws_secret_access_key,
+        signature_version,
+    ):
         """Function fetches s3 files in a distributed fashion, since S3 does not act as HDFS textFile can't
         be trusted.
-
         :return: pyspark dataframe
         """
         try:
-            # Re-assign variables to avoid SparkContext
-            # being referenced on self which causes a
-            # SPARK-5063 error
-            s3_bucket = self.s3_bucket
-            endpoint_url = self.endpoint_url
-            signature_version = self.signature_version
-            aws_access_key_id = self.aws_access_key_id
-            aws_secret_access_key = self.aws_secret_access_key
 
-            # Here we force the reading of files to be distributed amongs the
+            files: List = get_bucket_files(
+                s3_bucket=s3_bucket,
+                endpoint_url=endpoint_url,
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                signature_version=signature_version
+            )
+
+            # Force the reading of files to be distributed among the
             # executors. It will basically take the file, split it up into
             # subparts and speed up the read process.
+            #
+
             # Article about the subject: https://tech.kinja.com/how-not-to-pull-from-s3-using-apache-spark-1704509219
-            self.spark_context.parallelize(files).flatMap(
+            file = self.spark_context.parallelize(files).flatMap(
                 lambda filepath: distributed_fetch(
-                    filepath,
-                    s3_bucket,
-                    endpoint_url,
-                    aws_access_key_id,
-                    aws_secret_access_key,
-                    signature_version
+                    filepath=filepath,
+                    s3_bucket=s3_bucket,
+                    endpoint_url=endpoint_url,
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    signature_version=signature_version
                 )
             )
 
+            print(file.collect())
+
         except ValueError:
             logging.warning('download failed')
-
-        return self.spark_session.read.option("delimiter", ',') \
-            .option('header', 'true') \
-            .csv('onlineretail.csv') \
-            .toDF('InvoiceNo', 'StockCode', 'Description', 'Quantity', 'InvoiceDate', 'UnitPrice', 'CustomerID', 'Country')
