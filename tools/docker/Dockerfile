@@ -5,7 +5,7 @@ RUN apt-get update && \
     apt-get install -y python3.7 && \
     apt-get install -y python3-pip
 
-RUN pip3 install haversine &&  pip3 install ftfy && pip3 install paho_mqtt && pip3 install mock && pip3 install pytest
+RUN pip3 install pytest
 
 # Set workspace
 RUN mkdir /berserkr-app

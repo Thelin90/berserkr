@@ -13,10 +13,10 @@ def distributed_fetch(
     aws_secret_access_key: str,
     signature_version: str,
 ) -> Iterator:
-    """Function fetches file from s3 or Minio locally
+    """Function fetches file from s3/Minio bucket
     :rtype: object
-    :param filepath: the s3 file path
-    :param s3_bucket: the s3 bucket
+    :param filepath: the s3/minio file path
+    :param s3_bucket: the s3/minio bucket
     :param endpoint_url: specified endpoint
     :param aws_access_key_id: access key for AWS account
     :param aws_secret_access_key: secret key for AWS account
@@ -48,6 +48,15 @@ def get_bucket_files(
     aws_secret_access_key: str,
     signature_version: str,
 ):
+    """Function fetches the available files on a given s3/minio bucket
+
+    :param endpoint_url: specified endpoint
+    :param s3_bucket: the s3/minio bucket
+    :param aws_access_key_id: access key for AWS account
+    :param aws_secret_access_key: secret key for AWS account
+    :param signature_version: AWS signature version
+    :return: list of available files
+    """
     files = []
 
     # TODO: could perhaps be in the distributed_read_from_s3? Not running on several executors
