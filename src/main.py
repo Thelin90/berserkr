@@ -1,6 +1,6 @@
-from src.apps.spark_session import InitSpark
+from src.spark_session import InitSpark
 
-from src.helpers.distributed_read_s3 import DistributedS3Reader
+from src.apps.distributed_read_s3 import DistributedS3Reader
 
 
 def main():
@@ -15,6 +15,7 @@ def main():
         spark_context=default_spark_session.sparkContext
     )
 
+    # TODO: read from env file another PR
     dist_s3_reader.distributed_read_from_s3(
         s3_bucket='rawdata',
         endpoint_url='http://127.0.0.1:9000',

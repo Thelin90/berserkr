@@ -98,9 +98,11 @@ Run:
 ```bash
 ./run.sh
 ```
+
+#### Local run
 Run:
 ```bash
-PYTHONPATH=. python src/main.py 
+PYTHONPATH=. spark-submit src/main.py 
 ```
 ## Tests
 
@@ -108,8 +110,9 @@ Section to describe how to test the project.
 
 ### Unit
 
+#### Local run
 ```bash
-some command
+PYTHONPATH=. python3.7 -m pytest
 ```
 
 ### Integration
