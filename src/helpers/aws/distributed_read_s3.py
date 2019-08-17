@@ -50,5 +50,6 @@ class DistributedS3Reader(object):
             )
 
             return raw_rdd
+
         except ValueError as ve:
             logging.warning(ve)
