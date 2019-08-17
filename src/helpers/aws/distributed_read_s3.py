@@ -1,6 +1,6 @@
 import logging
 
-from src.helpers.s3_specific import get_bucket_files, distributed_fetch
+from src.helpers.aws.s3_specific import get_bucket_files, distributed_fetch
 from typing import List
 from pyspark import SparkContext
 

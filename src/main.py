@@ -1,6 +1,6 @@
 from src.spark_session import InitSpark
 
-from src.apps.distributed_read_s3 import DistributedS3Reader
+from src.helpers.aws.distributed_read_s3 import DistributedS3Reader
 
 
 def main():

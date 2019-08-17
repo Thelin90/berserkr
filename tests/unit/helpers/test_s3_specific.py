@@ -2,10 +2,10 @@ import pytest
 
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
-from botocore import exceptions
-from src.helpers.s3_specific import distributed_fetch, get_bucket_files
+from botocore.exceptions import ClientError
+from src.helpers.aws.s3_specific import distributed_fetch
 
-BOTO3_RESOURCE = 'src.helpers.s3_specific.boto3.resource'
+BOTO3_RESOURCE = 'src.helpers.aws.s3_specific.boto3.resource'
 
 
 class TestS3Read(TestCase):
@@ -40,11 +40,11 @@ class TestS3Read(TestCase):
         with patch(BOTO3_RESOURCE) as read_file:
 
             error_response = {'Error': {'Code': '404'}}
-            side_effect = exceptions.ClientError(
+            side_effect = ClientError(
                 error_response, 'not found'
             )
             read_file.side_effect = side_effect
-            with pytest.raises(exceptions.ClientError):
+            with pytest.raises(ClientError):
                 distributed_fetch(
                     self.fake_filepath,
                     self.s3_bucket,
