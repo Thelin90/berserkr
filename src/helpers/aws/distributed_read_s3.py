@@ -38,7 +38,7 @@ class DistributedS3Reader(object):
             #
 
             # Article about the subject: https://tech.kinja.com/how-not-to-pull-from-s3-using-apache-spark-1704509219
-            self.spark_context.parallelize(files).flatMap(
+            raw_rdd = self.spark_context.parallelize(files).flatMap(
                 lambda filepath: distributed_fetch(
                     filepath=filepath,
                     s3_bucket=s3_bucket,
@@ -49,5 +49,6 @@ class DistributedS3Reader(object):
                 )
             )
 
+            return raw_rdd
         except ValueError as ve:
             logging.warning(ve)
