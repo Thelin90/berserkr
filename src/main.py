@@ -16,7 +16,7 @@ def main():
     )
 
     # TODO: read from env file another PR
-    res = dist_s3_reader.distributed_read_from_s3(
+    raw_rdd = dist_s3_reader.distributed_read_from_s3(
         s3_bucket='rawdata',
         endpoint_url='http://127.0.0.1:9000',
         aws_access_key_id='AKIAIOSFODNN7EXAMPLE',
@@ -24,7 +24,7 @@ def main():
         signature_version='s3v4',
     )
 
-    print(res.collect())
+    print(raw_rdd.collect())
 
 
 main()
