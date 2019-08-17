@@ -1,6 +1,7 @@
 import boto3
 import os
 
+from src.helpers.subprocesses.decompress import decompress
 from botocore.client import Config
 from typing import Iterator
 
@@ -38,7 +39,7 @@ def distributed_fetch(
     )
 
     # TODO: another PR to decompress and erase downloaded file via subprocess
-    return base_path
+    return decompress(base_path)
 
 
 def get_bucket_files(

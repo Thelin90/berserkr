@@ -47,7 +47,7 @@ class DistributedS3Reader(object):
                     aws_secret_access_key=aws_secret_access_key,
                     signature_version=signature_version
                 )
-            ).collect()
+            )
 
         except ValueError as ve:
             logging.warning(ve)
