@@ -32,7 +32,6 @@ class TestS3Read(TestCase):
                 aws_secret_access_key=self.fake_aws_secret_access_key,
                 signature_version=self.fake_signature_version,
             )
-
             self.assertEqual(bucket_files.call_count, 1)
 
     def test_get_bucket_files_failure(self):
@@ -46,8 +45,6 @@ class TestS3Read(TestCase):
                     aws_secret_access_key=self.fake_aws_secret_access_key,
                     signature_version=self.fake_signature_version,
                 )
-
-            # read should fail and only been called once
             self.assertEqual(bucket_files.call_count, 1)
 
     @patch(DECOMPRESS_LZO)
@@ -64,8 +61,6 @@ class TestS3Read(TestCase):
                 aws_secret_access_key=self.fake_aws_secret_access_key,
                 signature_version=self.fake_signature_version,
             )
-
-        # 1 read should only occur when called
         self.assertEqual(read_file.call_count, 1)
 
     def test_read_s3_file_failure(self):
@@ -80,6 +75,4 @@ class TestS3Read(TestCase):
                     aws_secret_access_key=self.fake_aws_secret_access_key,
                     signature_version=self.fake_signature_version,
                 )
-
-            # read should fail and only been called once
             self.assertEqual(read_file.call_count, 1)
