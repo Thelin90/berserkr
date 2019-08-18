@@ -37,14 +37,19 @@ Apache Spark is the chosen tool used within this project. Spark is quick and ver
 
 In this project the work is done in batches.
 
+### Parquet
+
+Extracted and transformed files will be saved with the `parquet` format in `S3`. And fetched to be used in the 
+machine learning parts of the application.
+
+Parquet is a part of the `spark` eco-system and therefore been chosen as the format to store files in `S3` with once
+they are prepared and ready.
+
 ### Apache Arrow
 
-In this project `Apache Arrow` will be used and not `Parquet`, `JSON`.
+In this project `Apache Arrow` will be utilised.
 
-Why? Well simply, when utilising let's say `Parquet`. Which is a great dataformat, but it requires you to use a lot of `CPU` in 
-`serialization` and `deserialization`.
-
-So to avoid that, let's use something that can be utilized in the same memory, here is where `arrow` comes in the picture.
+This will enable better performance in regards to the `CPU` not having to perform `serialization` and `deserialization`.
 
 Some benefits:
 
