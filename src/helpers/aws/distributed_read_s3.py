@@ -2,7 +2,12 @@ import logging
 
 from src.helpers.aws.s3_specific import get_bucket_files, distributed_fetch
 from typing import List
-from pyspark import SparkContext
+from pyspark import SparkContext, RDD
+
+
+def remove_header(rdd: RDD) -> RDD:
+    header_rdd = rdd.first()
+    return rdd.filter(lambda row: row != header_rdd)
 
 
 # TODO: to early to write a test for this class, all logic is not done yet
@@ -18,9 +23,17 @@ class DistributedS3Reader(object):
         aws_access_key_id: str,
         aws_secret_access_key: str,
         signature_version: str,
-    ):
+    ) -> RDD:
         """Function fetches s3 files in a distributed fashion, since S3 does not act as HDFS textFile can't
-        be trusted.
+        be trusted. Returns the data as a pyspark RDD without its header.
+
+
+        :param s3_bucket:
+        :param endpoint_url:
+        :param aws_access_key_id:
+        :param aws_secret_access_key:
+        :param signature_version:
+        :return: pyspark RDD
         """
         try:
 
@@ -48,6 +61,9 @@ class DistributedS3Reader(object):
                     signature_version=signature_version
                 )
             )
+
+            raw_rdd = remove_header(raw_rdd)
+            raw_rdd = raw_rdd.map(lambda x: x.split(','))
 
             return raw_rdd
 

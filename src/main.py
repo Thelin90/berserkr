@@ -1,7 +1,6 @@
 from src.spark_session import InitSpark
-
 from src.helpers.aws.distributed_read_s3 import DistributedS3Reader
-
+from src.modules.schemas import OnlineRetailSchema
 
 def main():
     # Initialise SparkSession
@@ -24,7 +23,10 @@ def main():
         signature_version='s3v4',
     )
 
-    print(raw_rdd.collect())
+    # TODO: Move to application that will be called raw_to_parquet
+    df = default_spark_session.createDataFrame(raw_rdd, schema=OnlineRetailSchema.INITIAL_SCHEMA)
+
+    print(df.show(5))
 
 
 main()

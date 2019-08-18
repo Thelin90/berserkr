@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 from botocore.exceptions import ClientError
 from src.helpers.aws.s3_specific import distributed_fetch
 
+DECOMPRESS_LZO = 'src.helpers.aws.s3_specific.decompress_lzo'
 BOTO3_RESOURCE = 'src.helpers.aws.s3_specific.boto3.resource'
 
 
@@ -18,12 +19,12 @@ class TestS3Read(TestCase):
         self.aws_secret_access_key = 'fake-secret-access-key'
         self.signature_version = 'fake-signature-version'
 
-    def test_read_s3_file_sucess(self):
+    @patch(DECOMPRESS_LZO)
+    def test_read_s3_file_sucess(self, decompress_lzo_mock):
         distributed_fetch_mock = MagicMock()
         distributed_fetch.return_value = distributed_fetch_mock
 
         with patch(BOTO3_RESOURCE) as read_file:
-
             distributed_fetch(
                 self.fake_filepath,
                 self.s3_bucket,
@@ -38,7 +39,6 @@ class TestS3Read(TestCase):
 
     def test_read_s3_file_failure(self):
         with patch(BOTO3_RESOURCE) as read_file:
-
             error_response = {'Error': {'Code': '404'}}
             side_effect = ClientError(
                 error_response, 'not found'

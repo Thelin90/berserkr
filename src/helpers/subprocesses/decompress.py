@@ -6,7 +6,7 @@ import os
 from typing import List
 
 
-def decompress_lzo(file) -> List[List[str]]:
+def decompress_lzo(file) -> List[str]:
     """Decompress lzo file, see https://www.lzop.org/lzop_man.php
 
     :param file: file to decompress
@@ -30,4 +30,4 @@ def decompress_lzo(file) -> List[List[str]]:
         for fl in glob.glob("*.lzo"):
             os.remove(fl)
 
-        return [p.stdout.decode('utf-8')]
+        return p.stdout.decode('utf-8').strip().split('\n')
