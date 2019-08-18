@@ -50,7 +50,6 @@ class TestS3Read(TestCase):
             # read should fail and only been called once
             self.assertEqual(bucket_files.call_count, 1)
 
-
     @patch(DECOMPRESS_LZO)
     def test_read_s3_file_sucess(self, decompress_lzo_mock):
         distributed_fetch_mock: MagicMock = MagicMock()
