@@ -3,7 +3,7 @@ import os
 
 from src.helpers.subprocesses.decompress import decompress_lzo
 from botocore.client import Config
-from typing import Iterator
+from typing import List
 
 
 def distributed_fetch(
@@ -13,7 +13,7 @@ def distributed_fetch(
     aws_access_key_id: str,
     aws_secret_access_key: str,
     signature_version: str,
-) -> Iterator:
+) -> List[str]:
     """Function fetches file from s3/Minio bucket
     :rtype: object
     :param filepath: the s3/minio file path
@@ -24,9 +24,9 @@ def distributed_fetch(
     :param signature_version: AWS signature version
     """
 
-    base_path = os.path.basename(filepath)
+    base_path: str = os.path.basename(filepath)
 
-    s3 = boto3.resource(
+    s3: boto3.resource = boto3.resource(
         's3',
         endpoint_url=endpoint_url,
         aws_access_key_id=aws_access_key_id,
@@ -47,7 +47,7 @@ def get_bucket_files(
     aws_access_key_id: str,
     aws_secret_access_key: str,
     signature_version: str,
-):
+) -> List[str]:
     """Function fetches the available files on a given s3/minio bucket
 
     :param endpoint_url: specified endpoint
@@ -60,7 +60,7 @@ def get_bucket_files(
     files = []
 
     # TODO: could perhaps be in the distributed_read_from_s3? Not running on several executors
-    s3 = boto3.resource(
+    s3: boto3.resource = boto3.resource(
         's3',
         endpoint_url=endpoint_url,
         aws_access_key_id=aws_access_key_id,
@@ -68,7 +68,7 @@ def get_bucket_files(
         config=Config(signature_version=signature_version))
 
     # Bucket to use
-    bucket = s3.Bucket(s3_bucket)
+    bucket: s3.Bucket = s3.Bucket(s3_bucket)
 
     for file in bucket.objects.all():
         files.append(f'{file.key}')

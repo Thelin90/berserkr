@@ -24,14 +24,14 @@ class TestLZODecompression(object):
             self,
             os_mock,  # never use, just wanna mock it out
             glob_mock,  # never use, just wanna mock it out
-            output_from_decode,
-            expected_res,
-            fake_file,
+            output_from_decode: str,
+            expected_res: str,
+            fake_file: str,
     ):
         with patch(SUBPROCESS_RUN) as result:
-            filter_mock = MagicMock()
-            filter_mock.filter.return_value = expected_res
-            decompress_lzo.return_value = filter_mock
+            filter_mock: MagicMock = MagicMock()
+            filter_mock.filter.return_value: str = expected_res
+            decompress_lzo.return_value: MagicMock = filter_mock
 
             # mock return value of stdout.decode()
             def decode(decode_format):
@@ -43,10 +43,10 @@ class TestLZODecompression(object):
                 """
                 return output_from_decode
 
-            decode_mock = MagicMock(decode=decode)
-            std_out_mock = MagicMock(stdout=decode_mock)
+            decode_mock: MagicMock = MagicMock(decode=decode)
+            std_out_mock: MagicMock = MagicMock(stdout=decode_mock)
             returncode_mock = result.return_value = std_out_mock
-            returncode_mock.returncode = 0
+            returncode_mock.returncode: int = 0
 
             fake_rows = decompress_lzo(fake_file)
 

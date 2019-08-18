@@ -6,7 +6,7 @@ from pyspark import SparkContext, RDD
 
 
 def remove_header(rdd: RDD) -> RDD:
-    header_rdd = rdd.first()
+    header_rdd: RDD = rdd.first()
     return rdd.filter(lambda row: row != header_rdd)
 
 
@@ -37,9 +37,9 @@ class DistributedS3Reader(object):
         """
         try:
 
-            files: List = get_bucket_files(
-                s3_bucket=s3_bucket,
+            files: List[str] = get_bucket_files(
                 endpoint_url=endpoint_url,
+                s3_bucket=s3_bucket,
                 aws_access_key_id=aws_access_key_id,
                 aws_secret_access_key=aws_secret_access_key,
                 signature_version=signature_version
@@ -49,9 +49,8 @@ class DistributedS3Reader(object):
             # executors. It will basically take the file, split it up into
             # subparts and speed up the read process.
             #
-
             # Article about the subject: https://tech.kinja.com/how-not-to-pull-from-s3-using-apache-spark-1704509219
-            raw_rdd = self.spark_context.parallelize(files).flatMap(
+            raw_rdd: RDD = self.spark_context.parallelize(files).flatMap(
                 lambda filepath: distributed_fetch(
                     filepath=filepath,
                     s3_bucket=s3_bucket,
@@ -62,8 +61,8 @@ class DistributedS3Reader(object):
                 )
             )
 
-            raw_rdd = remove_header(raw_rdd)
-            raw_rdd = raw_rdd.map(lambda x: x.split(','))
+            raw_rdd: RDD = remove_header(raw_rdd)
+            raw_rdd: RDD = raw_rdd.map(lambda x: x.split(','))
 
             return raw_rdd
 
