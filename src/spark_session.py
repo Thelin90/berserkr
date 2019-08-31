@@ -1,9 +1,14 @@
 from pyspark.sql import SparkSession
+from pyspark import SparkConf, SparkContext, SQLContext
 
 
 class InitSpark(object):
 
-    def __init__(self, app_name, warehouse_location):
+    def __init__(
+            self,
+            app_name,
+            warehouse_location
+    ):
         self.app_name = app_name
         self.warehouse_location = warehouse_location
 

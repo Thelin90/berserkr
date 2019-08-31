@@ -1,17 +1,9 @@
-"""
-
-This class will clean the data, perhaps create some new features from the existing one if possible,
-then save it on S3 as a parquet file.
-
-
-The machine learning app of the project will then read this file, and utilize pandas udf, featuretools
-
-
-"""
 from datetime import datetime
-from pyspark import RDD
+from pyspark import RDD, SparkContext, SQLContext
 from pyspark.sql import SparkSession, DataFrame
 
+from src.helpers.aws.s3_specific import delete_bucket_data
+from src.modules.schemas import OnlineRetailSchema
 from src.helpers.aws.distributed_read_s3 import DistributedS3Reader
 
 MAX_MONTH = 12
@@ -19,9 +11,12 @@ MAX_MONTH = 12
 
 class RawToParquet(object):
     """
+    This class will clean the data, perhaps create some new features from the existing one if possible,
+    then save it on S3 as a parquet file.
 
+
+    The machine learning app of the project will then read this file, and utilize pandas udf, featuretools
     """
-
     def __init__(
             self,
             spark_session: SparkSession,
@@ -40,6 +35,7 @@ class RawToParquet(object):
         self.signature_version: str = signature_version
         self.schema: str = schema
         self.raw_rdd: RDD = self.spark_session.sparkContext.emptyRDD()
+        self.df = self.spark_session.createDataFrame(self.raw_rdd, OnlineRetailSchema.EMPTY_SCHEMA)
 
     def extract(self) -> None:
         """Method to extract dataset distributed, generic
@@ -58,7 +54,7 @@ class RawToParquet(object):
             signature_version=self.signature_version,
         )
 
-    def transform_online_retail(self) -> DataFrame:
+    def transform_online_retail(self) -> None:
         """Method to transform online retail dataset to its correct dataformats, specific
         for online retail
 
@@ -77,23 +73,34 @@ class RawToParquet(object):
             retail[7] if retail[7] != '' else None)  # Country
         )
 
-        return self.spark_session.createDataFrame(
+        self.df: DataFrame = self.spark_session.createDataFrame(
             raw_rdd,
             schema=self.schema
         )
 
-    @staticmethod
-    def load_online_retail(df: DataFrame) -> None:
+    def load_online_retail(self) -> None:
         """Method to load data as parquet to S3, specific for online retail
 
         :param df:
         :return:
         """
+        df: DataFrame = self.df
         print(df.show(1000))
 
-        # convert dataframe to parquet
-        df.write.format('parquet').mode('overwrite').saveAsTable('test_table')
+        s3_url = 's3a://onlineretailparquet/'
+        sc = self.spark_session.sparkContext
+
+        uri = sc._gateway.jvm.java.net.URI
+        path = sc._gateway.jvm.org.apache.hadoop.fs.Path
+        filesystem = sc._gateway.jvm.org.apache.hadoop.fs.FileSystem
+
+        delete_bucket_data(
+            filesystem=filesystem,
+            uri=uri,
+            path=path,
+            sc=sc,
+            s3_url=s3_url,
+        )
 
         # write table to S3
-
-        # delete parquet file form machine
+        df.write.parquet(s3_url)

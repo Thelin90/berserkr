@@ -30,7 +30,8 @@ services:
                 entrypoint: >
                         /bin/sh -c "
                         /usr/bin/mc config host add myminio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
-                        /usr/bin/mc mb myminio/rawdata;
+                        /usr/bin/mc mb myminio/onlineretailraw;
+                        /usr/bin/mc mb myminio/onlineretailparquet;
                         exit 0;"
                 network_mode: 'host'
 networks:

@@ -1,13 +1,18 @@
 from environs import Env
 
-from pyspark import RDD
-from pyspark.sql import DataFrame
 from src.spark_session import InitSpark
 from src.apps.raw_to_parquet import RawToParquet
-from src.modules.schemas import OnlineRetailSchema as retail_schema
+from src.modules.schemas import OnlineRetailSchema
 
 env: Env = Env()
 env.read_env()
+
+# read env variables
+s3_bucket = env('RAW_DATA_ONLINE_RETAIL_S3_BUCKET')
+endpoint_url = env('ENDPOINT_URL')
+aws_access_key_id = env('AWS_ACCESS_KEY_ID')
+aws_secret_access_key = env('AWS_SECRET_ACCESS_KEY')
+signature_version = env('SIGNATURE_VERSION')
 
 
 # Initialise SparkSession
@@ -17,11 +22,10 @@ default_spark_session.sparkContext.setLogLevel("WARN")
 # Enable Arrow-based columnar data transfers
 default_spark_session.conf.set("spark.sql.execution.arrow.enabled", "true")
 
-s3_bucket = env('RAW_DATA_ONLINE_RETAIL_S3_BUCKET')
-endpoint_url = env('ENDPOINT_URL')
-aws_access_key_id = env('AWS_ACCESS_KEY_ID')
-aws_secret_access_key = env('AWS_SECRET_ACCESS_KEY')
-signature_version = env('SIGNATURE_VERSION')
+hadoop_conf = default_spark_session.sparkContext._jsc.hadoopConfiguration()
+hadoop_conf.set("fs.s3a.endpoint", endpoint_url)
+hadoop_conf.set("fs.s3a.access.key", aws_access_key_id)
+hadoop_conf.set("fs.s3a.secret.key", aws_secret_access_key)
 
 rtp = RawToParquet(
     spark_session=default_spark_session,
@@ -30,17 +34,17 @@ rtp = RawToParquet(
     aws_access_key_id=aws_access_key_id,
     aws_secret_access_key=aws_secret_access_key,
     signature_version=signature_version,
-    schema=retail_schema.INITIAL_SCHEMA,
+    schema=OnlineRetailSchema.INITIAL_SCHEMA,
 )
 
 # extract data
 rtp.extract()
 
 # transform data
-df: DataFrame = rtp.transform_online_retail()
+rtp.transform_online_retail()
 
 # load data
-rtp.load_online_retail(df)
+rtp.load_online_retail()
 
 
 

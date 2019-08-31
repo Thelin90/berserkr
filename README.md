@@ -121,9 +121,13 @@ A [minio](http://127.0.0.1:9000/minio/rawdata/) server with a default bucket and
 
 Run:
 ```bash
-PYTHONPATH=. spark-submit src/main.py 
+PYTHONPATH=. spark-submit --packages org.apache.hadoop:hadoop-aws:2.7.0 src/main.py 
 ```
+
+[Custom S3 endpoints with Spark](https://gist.github.com/tobilg/e03dbc474ba976b9f235)
 ## Tests
+
+[hadoop-LZO](https://github.com/twitter/hadoop-lzo)
 
 Section to describe how to test the project.
 

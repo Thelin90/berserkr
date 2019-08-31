@@ -41,6 +41,26 @@ def distributed_fetch(
     return decompress_lzo(base_path)
 
 
+def delete_bucket_data(filesystem, uri, s3_url, sc, path):
+    """df.write.mode='overwrite' does not seem to work with parquet files O.o?
+
+    https://stackoverflow.com/questions/44991550/aws-emr-spark-error-writing-to-s3-illegalargumentexception-cannot-create-a
+    https://www.quora.com/How-do-you-overwrite-the-output-directory-when-using-PySpark
+    http://crazyslate.com/how-to-rename-hadoop-files-using-wildcards-while-patterns/
+
+    :param filesystem:
+    :param uri:
+    :param s3_url:
+    :param sc:
+    :param path:
+    :return:
+    """
+    fs = filesystem.get(uri(s3_url), sc._jsc.hadoopConfiguration())
+    file_status = fs.globStatus(path("/*"))
+    for status in file_status:
+        fs.delete(status.getPath(), True)
+
+
 def get_bucket_files(
     endpoint_url: str,
     s3_bucket: str,
