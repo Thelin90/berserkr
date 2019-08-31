@@ -129,6 +129,10 @@ Section to describe how to test the project.
 
 ### Unit
 
+```bash
+PYTHONPATH=. pytest . -v
+```
+
 ### Integration
 
 ```bash
