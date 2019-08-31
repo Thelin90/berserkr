@@ -15,7 +15,7 @@ class TestLZODecompression(object):
     @patch(GLOB)
     @pytest.mark.parametrize('output_from_decode, expected_res, fake_file', [(
         '1, 2, FAKE SOMETHING, 3, 12/1/2019 8:26, 4.4, 5, United Kingdom\n'
-        '2, 3, FAKE SOMETHING, 4, 12/1/2019 8:27, 5.5, 6, United Kingdom\n',
+        '2, 3, "FAKE SOMETHING,,,,,", 4, 12/1/2019 8:27, 5.5, 6, United Kingdom\n',
         ['1, 2, FAKE SOMETHING, 3, 12/1/2019 8:26, 4.4, 5, United Kingdom',
          '2, 3, FAKE SOMETHING, 4, 12/1/2019 8:27, 5.5, 6, United Kingdom'],
         'fake-file.csv.lzo'
@@ -52,6 +52,7 @@ class TestLZODecompression(object):
 
             assert result.call_count == 1
             assert isinstance(fake_rows, List)
+            assert len(fake_rows) == 2
             assert fake_rows == expected_res
 
             # test with a not accepted return code

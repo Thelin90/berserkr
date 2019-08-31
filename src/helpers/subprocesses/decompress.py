@@ -2,7 +2,7 @@
 import subprocess
 import glob
 import os
-
+import re
 
 from typing import List
 
@@ -31,4 +31,13 @@ def decompress_lzo(file) -> List[str]:
         for fl in glob.glob("*.lzo"):
             os.remove(fl)
 
-        return p.stdout.decode('utf-8').strip().split('\n')
+        output = p.stdout \
+            .decode('utf-8') \
+
+        # remove commas within qoutes `" some text,,, "`
+        output = re.sub(r'"[^"]*"', lambda m: m.group(0).replace(',', ''), output)
+
+        # remove redundant `" "`, split per new row to become a list
+        output = output.replace('"', '').strip().split('\n')
+
+        return output
