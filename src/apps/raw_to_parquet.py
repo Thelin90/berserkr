@@ -20,7 +20,8 @@ class RawToParquet(object):
     def __init__(
             self,
             spark_session: SparkSession,
-            s3_bucket,
+            raw_s3_bucket,
+            parquet_s3_bucket,
             endpoint_url,
             aws_access_key_id,
             aws_secret_access_key,
@@ -28,7 +29,8 @@ class RawToParquet(object):
             schema
     ):
         self.spark_session: SparkSession = spark_session
-        self.s3_bucket: str = s3_bucket
+        self.raw_s3_bucket: str = raw_s3_bucket
+        self.parquet_s3_bucket: str = parquet_s3_bucket
         self.endpoint_url: str = endpoint_url
         self.aws_access_key_id: str = aws_access_key_id
         self.aws_secret_access_key: str = aws_secret_access_key
@@ -47,7 +49,7 @@ class RawToParquet(object):
         )
 
         self.raw_rdd: RDD = dist_s3_reader.distributed_read_from_s3(
-            s3_bucket=self.s3_bucket,
+            s3_bucket=self.raw_s3_bucket,
             endpoint_url=self.endpoint_url,
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
@@ -84,23 +86,14 @@ class RawToParquet(object):
         :param df:
         :return:
         """
-        df: DataFrame = self.df
-        print(df.show(1000))
-
-        s3_url = 's3a://onlineretailparquet/'
+        s3_url = f's3a://{self.parquet_s3_bucket}/'
         sc = self.spark_session.sparkContext
 
-        uri = sc._gateway.jvm.java.net.URI
-        path = sc._gateway.jvm.org.apache.hadoop.fs.Path
-        filesystem = sc._gateway.jvm.org.apache.hadoop.fs.FileSystem
-
+        # delete data from bucket
         delete_bucket_data(
-            filesystem=filesystem,
-            uri=uri,
-            path=path,
             sc=sc,
             s3_url=s3_url,
         )
 
         # write table to S3
-        df.write.parquet(s3_url)
+        self.df.write.parquet(s3_url)

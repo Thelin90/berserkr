@@ -8,7 +8,8 @@ env: Env = Env()
 env.read_env()
 
 # read env variables
-s3_bucket = env('RAW_DATA_ONLINE_RETAIL_S3_BUCKET')
+raw_s3_bucket = env('RAW_DATA_ONLINE_RETAIL_S3_BUCKET')
+parquet_s3_bucket = env('PARQUET_DATA_ONLINE_RETAIL_S3_BUCKET')
 endpoint_url = env('ENDPOINT_URL')
 aws_access_key_id = env('AWS_ACCESS_KEY_ID')
 aws_secret_access_key = env('AWS_SECRET_ACCESS_KEY')
@@ -16,20 +17,20 @@ signature_version = env('SIGNATURE_VERSION')
 
 
 # Initialise SparkSession
-init_spark_session = InitSpark("RawToParquet", "spark-warehouse")
-default_spark_session = init_spark_session.spark_init()
-default_spark_session.sparkContext.setLogLevel("WARN")
-# Enable Arrow-based columnar data transfers
-default_spark_session.conf.set("spark.sql.execution.arrow.enabled", "true")
+init_spark_session = InitSpark(
+    "RawToParquet",
+    "spark-warehouse",
+    endpoint_url=endpoint_url,
+    aws_access_key_id=aws_access_key_id,
+    aws_secret_access_key=aws_secret_access_key
+)
 
-hadoop_conf = default_spark_session.sparkContext._jsc.hadoopConfiguration()
-hadoop_conf.set("fs.s3a.endpoint", endpoint_url)
-hadoop_conf.set("fs.s3a.access.key", aws_access_key_id)
-hadoop_conf.set("fs.s3a.secret.key", aws_secret_access_key)
+default_spark_session = init_spark_session.spark_init()
 
 rtp = RawToParquet(
     spark_session=default_spark_session,
-    s3_bucket=s3_bucket,
+    raw_s3_bucket=raw_s3_bucket,
+    parquet_s3_bucket=parquet_s3_bucket,
     endpoint_url=endpoint_url,
     aws_access_key_id=aws_access_key_id,
     aws_secret_access_key=aws_secret_access_key,

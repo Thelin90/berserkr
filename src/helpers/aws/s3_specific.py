@@ -41,7 +41,7 @@ def distributed_fetch(
     return decompress_lzo(base_path)
 
 
-def delete_bucket_data(filesystem, uri, s3_url, sc, path):
+def delete_bucket_data(sc, s3_url):
     """df.write.mode='overwrite' does not seem to work with parquet files O.o?
 
     https://stackoverflow.com/questions/44991550/aws-emr-spark-error-writing-to-s3-illegalargumentexception-cannot-create-a
@@ -55,6 +55,10 @@ def delete_bucket_data(filesystem, uri, s3_url, sc, path):
     :param path:
     :return:
     """
+    uri = sc._gateway.jvm.java.net.URI
+    path = sc._gateway.jvm.org.apache.hadoop.fs.Path
+    filesystem = sc._gateway.jvm.org.apache.hadoop.fs.FileSystem
+
     fs = filesystem.get(uri(s3_url), sc._jsc.hadoopConfiguration())
     file_status = fs.globStatus(path("/*"))
     for status in file_status:
