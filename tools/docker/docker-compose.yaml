@@ -9,31 +9,29 @@ services:
                         dockerfile: tools/docker/Dockerfile
                 depends_on:
                   - minio
-                network_mode: "host"
-        # MinIO
+                network_mode: 'host'
+        # MinIO simulate S3 for local smoke and unit/integration testing
         minio:
                 image: minio/minio
                 ports:
-                        - "9000:9000"
+                        - '9000:9000'
                 volumes:
                         - ./test/.minio/data:/export
                         - ./test/.minio/config:/root/.minio
                 environment:
-                        - "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE"
-                        - "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                        - 'MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE'
+                        - 'MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
                 command: server /export
-
-        createbuckets:
+        # Initial raw data
+        createrawdatabucket:
                 image: minio/mc
                 depends_on:
                         - minio
                 entrypoint: >
                         /bin/sh -c "
                         /usr/bin/mc config host add myminio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
-                        /usr/bin/mc rm -r --force myminio/rawdata;
                         /usr/bin/mc mb myminio/rawdata;
-                        /usr/bin/mc policy download myminio/rawdata;
-                        exit 0;
-                        "
+                        exit 0;"
+                network_mode: 'host'
 networks:
   berserkr-app-default:
