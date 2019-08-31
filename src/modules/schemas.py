@@ -7,10 +7,10 @@ class OnlineRetailSchema(object):
             StructField('InvoiceNo', StringType(), False),
             StructField('StockCode', StringType(), False),
             StructField('Description', StringType(), True),
-            StructField('Quantity', StringType(), False),
-            StructField('InvoiceDate', StringType(), False),
-            StructField('UnitPrice', StringType(), False),
-            StructField('CustomerID', StringType(), True),
+            StructField('Quantity', IntegerType(), False),
+            StructField('InvoiceDate', DateType(), False),
+            StructField('UnitPrice', DoubleType(), False),
+            StructField('CustomerID', IntegerType(), True),
             StructField('Country', StringType(), True)
         ]
     )

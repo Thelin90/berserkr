@@ -59,7 +59,6 @@ Some benefits:
 
 A great [video](https://www.youtube.com/watch?v=dPb2ZXnt2_U) explaining this!
 
-
 ### Featuretools
 
 ### Pandas UDF
@@ -82,20 +81,6 @@ Using `Apache Airflow` to schedule the applications within the project.
 
 I a normal scenario this should be in its own repository but will keep on here just because I want to share this project as an open source example.
 
-## MinIO
-
-Utilizing `MinIO` to be able to run integration test towards `S3`.
-
-Run `MinIO` standalone as a docker:
-
-```bash
-docker run -p 9000:9000 --name minio1   -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE"   -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"   -v /mnt/data:/data   minio/minio server /data
-```
-
-## docker-compose
-
-Building everything together with `docker-compose`.
-
 ## Run application
 
 Run manually by first initialise `virtualenv`  
@@ -116,7 +101,24 @@ Run:
 ./run.sh
 ```
 
+Explicitly for MacOS users
+
+```bash
+brew install lzop
+```
+
+`subprocess` will otherwise fail when running application locally.
+
 #### Local run
+
+`cd tools/docker`
+
+```bash
+docker-compose up
+```
+
+A [minio](http://127.0.0.1:9000/minio/rawdata/) server with a default bucket and data has now been created, which can be used.
+
 Run:
 ```bash
 PYTHONPATH=. spark-submit src/main.py 
@@ -127,9 +129,8 @@ Section to describe how to test the project.
 
 ### Unit
 
-#### Local run
 ```bash
-PYTHONPATH=. python3.7 -m pytest
+PYTHONPATH=. pytest . -v
 ```
 
 ### Integration
