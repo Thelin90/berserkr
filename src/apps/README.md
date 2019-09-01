@@ -48,6 +48,8 @@ Performance can be investigated at in the spark ui, check the logs when the app 
 If you want the `spark-ui` to be alive, so it does not goes down while checking, simply add this in the `src/run_r2p.py`
 file:
 
+![Screenshot](../.././docs/img/no-partition.png)
+
 ```python
 import time
 
