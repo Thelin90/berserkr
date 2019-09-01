@@ -1,6 +1,8 @@
 from datetime import datetime
-from pyspark import RDD, SparkContext, SQLContext
+
+from pyspark import RDD
 from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.types import StructType
 
 from src.helpers.aws.s3_specific import delete_bucket_data
 from src.modules.schemas import OnlineRetailSchema
@@ -20,26 +22,26 @@ class RawToParquet(object):
     def __init__(
             self,
             spark_session: SparkSession,
-            raw_s3_bucket,
-            parquet_s3_bucket,
-            endpoint_url,
-            aws_access_key_id,
-            aws_secret_access_key,
-            signature_version,
-            schema
+            raw_s3_bucket: str,
+            parquet_s3_bucket: str,
+            aws_endpoint_url: str,
+            aws_access_key_id: str,
+            aws_secret_access_key: str,
+            signature_version: str,
+            schema: StructType
     ):
         self.spark_session: SparkSession = spark_session
         self.raw_s3_bucket: str = raw_s3_bucket
         self.parquet_s3_bucket: str = parquet_s3_bucket
-        self.endpoint_url: str = endpoint_url
+        self.aws_endpoint_url: str = aws_endpoint_url
         self.aws_access_key_id: str = aws_access_key_id
         self.aws_secret_access_key: str = aws_secret_access_key
         self.signature_version: str = signature_version
-        self.schema: str = schema
+        self.schema: StructType = schema
         self.raw_rdd: RDD = self.spark_session.sparkContext.emptyRDD()
-        self.df = self.spark_session.createDataFrame(self.raw_rdd, OnlineRetailSchema.EMPTY_SCHEMA)
+        self.df: DataFrame = self.spark_session.createDataFrame(self.raw_rdd, OnlineRetailSchema.EMPTY_SCHEMA)
 
-    def extract(self) -> None:
+    def extract(self) -> RDD:
         """Method to extract dataset distributed, generic
 
         :return:
@@ -48,21 +50,23 @@ class RawToParquet(object):
             spark_context=self.spark_session.sparkContext
         )
 
-        self.raw_rdd: RDD = dist_s3_reader.distributed_read_from_s3(
+        return dist_s3_reader.distributed_read_from_s3(
             s3_bucket=self.raw_s3_bucket,
-            endpoint_url=self.endpoint_url,
+            endpoint_url=self.aws_endpoint_url,
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             signature_version=self.signature_version,
         )
 
-    def transform_online_retail(self) -> None:
+    def transform_online_retail(self, raw_rdd: RDD) -> DataFrame:
         """Method to transform online retail dataset to its correct dataformats, specific
         for online retail
 
         :return:
         """
-        raw_rdd = self.raw_rdd.map(lambda retail: (
+
+        # initial transformation of the raw RDD
+        raw_rdd = raw_rdd.map(lambda retail: (
             retail[0],  # InvoiceNo
             retail[1],  # StockCode
             retail[2] if retail[2] != '' else None,  # Description
@@ -75,15 +79,15 @@ class RawToParquet(object):
             retail[7] if retail[7] != '' else None)  # Country
         )
 
-        self.df: DataFrame = self.spark_session.createDataFrame(
+        return self.spark_session.createDataFrame(
             raw_rdd,
             schema=self.schema
         )
 
-    def load_online_retail(self) -> None:
+    def load_online_retail(self, raw_df) -> None:
         """Method to load data as parquet to S3, specific for online retail
 
-        :param df:
+        :param raw_df:
         :return:
         """
         s3_url = f's3a://{self.parquet_s3_bucket}/'
@@ -95,5 +99,9 @@ class RawToParquet(object):
             s3_url=s3_url,
         )
 
+        # raw to parquet dataframe schema
+        raw_df.printSchema()
+
         # write table to S3
-        self.df.write.parquet(s3_url)
+        # TODO: enable LZO compression https://github.com/twitter/hadoop-lzo
+        raw_df.write.parquet(s3_url)

@@ -1,6 +1,7 @@
 import boto3
 import os
 
+from pyspark import SparkContext
 from src.helpers.subprocesses.decompress import decompress_lzo
 from botocore.client import Config
 from typing import List
@@ -41,18 +42,15 @@ def distributed_fetch(
     return decompress_lzo(base_path)
 
 
-def delete_bucket_data(sc, s3_url):
+def delete_bucket_data(sc: SparkContext, s3_url: str) -> None:
     """df.write.mode='overwrite' does not seem to work with parquet files O.o?
 
     https://stackoverflow.com/questions/44991550/aws-emr-spark-error-writing-to-s3-illegalargumentexception-cannot-create-a
     https://www.quora.com/How-do-you-overwrite-the-output-directory-when-using-PySpark
     http://crazyslate.com/how-to-rename-hadoop-files-using-wildcards-while-patterns/
 
-    :param filesystem:
-    :param uri:
     :param s3_url:
     :param sc:
-    :param path:
     :return:
     """
     uri = sc._gateway.jvm.java.net.URI

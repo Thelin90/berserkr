@@ -31,10 +31,19 @@ def decompress_lzo(file) -> List[str]:
         for fl in glob.glob("*.lzo"):
             os.remove(fl)
 
-        output = p.stdout \
-            .decode('utf-8') \
+        # decode output from byte to str
+        output = p.stdout.decode('utf-8')
 
-        # remove commas within qoutes `" some text,,, "`
+        # "[^ ]" = Matches a single character that is not contained within the brackets.
+        # "[^ "]" = Matches everything within `"`. For example: '"HELLO",HELLO' -> "HELLO"
+        #
+        # * = Matches the preceding element zero or more times
+        #
+        # "[^"]*" = Matches a single preceding element zero or more times in this case
+        # in combination with .group(0).replace(',', '').
+        # Where .group(0) locates the whole matched expression.
+        #
+        # Hence: "HELLO,,," -> "HELLO,,,".replace(',', '') -> "HELLO"
         output = re.sub(r'"[^"]*"', lambda m: m.group(0).replace(',', ''), output)
 
         # remove redundant `" "`, split per new row to become a list

@@ -107,7 +107,7 @@ Explicitly for MacOS users
 brew install lzop
 ```
 
-`subprocess` will otherwise fail when running application locally.
+`subprocess` will otherwise fail when running application locally (decompression when reading S3 files).
 
 #### Local run
 
@@ -125,9 +125,9 @@ PYTHONPATH=. spark-submit --packages org.apache.hadoop:hadoop-aws:2.7.0 src/main
 ```
 
 [Custom S3 endpoints with Spark](https://gist.github.com/tobilg/e03dbc474ba976b9f235)
-## Tests
+[LZO compression spark]((https://github.com/twitter/hadoop-lzo))
 
-[hadoop-LZO](https://github.com/twitter/hadoop-lzo)
+## Tests
 
 Section to describe how to test the project.
 
