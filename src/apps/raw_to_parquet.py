@@ -84,7 +84,7 @@ class RawToParquet(object):
             schema=self.schema
         )
 
-    def load_online_retail(self, raw_df) -> None:
+    def load_online_retail(self, raw_df: DataFrame) -> None:
         """Method to load data as parquet to S3, specific for online retail
 
         :param raw_df:
@@ -102,6 +102,11 @@ class RawToParquet(object):
         # raw to parquet dataframe schema
         raw_df.printSchema()
 
+        # use when necessary
+        # number_of_partitions = sc.defaultParallelism * 4
+        # raw_df = raw_df.repartition(number_of_partitions)
+
         # write table to S3
+        # https://medium.com/@mrpowers/managing-spark-partitions-with-coalesce-and-repartition-4050c57ad5c4
         # TODO: enable LZO compression https://github.com/twitter/hadoop-lzo
         raw_df.write.parquet(s3_url)
