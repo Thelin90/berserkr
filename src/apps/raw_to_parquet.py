@@ -94,10 +94,10 @@ class RawToParquet(object):
         sc = self.spark_session.sparkContext
 
         # delete data from bucket
-        delete_bucket_data(
-            sc=sc,
-            s3_url=s3_url,
-        )
+        #delete_bucket_data(
+        #    sc=sc,
+         #   s3_url=s3_url,
+       # )
 
         # raw to parquet dataframe schema
         raw_df.printSchema()
@@ -109,4 +109,4 @@ class RawToParquet(object):
         # write table to S3
         # https://medium.com/@mrpowers/managing-spark-partitions-with-coalesce-and-repartition-4050c57ad5c4
         # TODO: enable LZO compression https://github.com/twitter/hadoop-lzo
-        raw_df.write.parquet(s3_url)
+        raw_df.coalesce(1).write.format("delta").save(s3_url)

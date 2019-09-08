@@ -39,5 +39,8 @@ class InitSpark(object):
         hadoop_conf.set("fs.s3a.endpoint", self.aws_endpoint_url)
         hadoop_conf.set("fs.s3a.access.key", self.aws_access_key_id)
         hadoop_conf.set("fs.s3a.secret.key", self.aws_secret_access_key)
+        hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+        hadoop_conf.set("fs.s3a.path.style.access", "true")
+        hadoop_conf.set("spark.history.fs.logDirectory", 's3a://spark-logs-test/')
 
         return sc

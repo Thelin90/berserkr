@@ -37,7 +37,7 @@ Apache Spark is the chosen tool used within this project. Spark is quick and ver
 
 In this project the work is done in batches.
 
-### Parquet
+### Apache Parquet
 
 Extracted and transformed files will be saved with the `parquet` format in `S3`. And fetched to be used in the 
 machine learning parts of the application.
@@ -45,9 +45,16 @@ machine learning parts of the application.
 Parquet is a part of the `spark` eco-system and therefore been chosen as the format to store files in `S3` with once
 they are prepared and ready.
 
+### Delta Lake
+
+This project will try to utilise `databricks` open source project [Delta Lake](https://delta.io/)
+
+- All data in Delta Lake is stored in Apache Parquet format 
+enabling Delta Lake to leverage the efficient compression and encoding schemes that are native to Parquet.
+
 ### Apache Arrow
 
-In this project `Apache Arrow` will be utilised.
+In this project `Apache Arrow` will be utilised when performing operation with `pandas udf` in `spark`.
 
 This will enable better performance in regards to the `CPU` not having to perform `serialization` and `deserialization`.
 
@@ -119,9 +126,11 @@ docker-compose up
 
 A [minio](http://127.0.0.1:9000/minio/rawdata/) server with a default bucket and data has now been created, which can be used.
 
+
+### Online retailer app
 Run:
 ```bash
-PYTHONPATH=. spark-submit --packages org.apache.hadoop:hadoop-aws:2.7.0 src/main.py 
+make onlineretailer
 ```
 
 [Custom S3 endpoints with Spark](https://gist.github.com/tobilg/e03dbc474ba976b9f235)
@@ -134,7 +143,7 @@ Section to describe how to test the project.
 ### Unit
 
 ```bash
-PYTHONPATH=. pytest . -v
+make test
 ```
 
 ### Integration

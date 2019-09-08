@@ -12,7 +12,7 @@ from pyspark.sql import DataFrame
 from src.spark_session import InitSpark
 from src.apps.raw_to_parquet import RawToParquet
 from src.modules.schemas import OnlineRetailSchema
-import time
+
 # initialise Env
 env: Env = Env()
 
