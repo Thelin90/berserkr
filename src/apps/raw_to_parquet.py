@@ -94,10 +94,10 @@ class RawToParquet(object):
         sc = self.spark_session.sparkContext
 
         # delete data from bucket
-        #delete_bucket_data(
-        #    sc=sc,
-         #   s3_url=s3_url,
-       # )
+        delete_bucket_data(
+            sc=sc,
+            s3_url=s3_url,
+        )
 
         # raw to parquet dataframe schema
         raw_df.printSchema()

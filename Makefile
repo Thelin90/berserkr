@@ -11,4 +11,4 @@ test:
 
 .PHONY: onlineretailer
 onlineretailer:
-	PYTHONPATH=. spark-submit --packages $(PYSPARK_SUBMIT_ARGS) src/run_onlineretailer.py
+	PYTHONPATH=. spark-submit --packages $(PYSPARK_SUBMIT_ARGS) --conf $(PYSPARK_CONF_ARGS) src/run_onlineretailer.py
