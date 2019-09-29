@@ -1,16 +1,11 @@
 import logging
-
-from src.helpers.aws.s3_specific import get_bucket_files, distributed_fetch
 from typing import List
 from pyspark import SparkContext, RDD
 
-
-def remove_header(rdd: RDD) -> RDD:
-    header_rdd: RDD = rdd.first()
-    return rdd.filter(lambda row: row != header_rdd)
+from src.helpers.aws.s3_specific import get_bucket_files, distributed_fetch
+from src.helpers.rdd.modifications import remove_header
 
 
-# TODO: to early to write a test for this class, all logic is not done yet
 class DistributedS3Reader(object):
 
     def __init__(self, spark_context: SparkContext):
@@ -64,10 +59,12 @@ class DistributedS3Reader(object):
                 )
             )
 
-            raw_rdd: RDD = remove_header(raw_rdd)
-            raw_rdd: RDD = raw_rdd.map(lambda x: x.split(','))
-
-            return raw_rdd
+            if 'csv' in raw_format:
+                raw_rdd: RDD = remove_header(raw_rdd)
+                raw_rdd: RDD = raw_rdd.map(lambda x: x.split(','))
+                return raw_rdd
+            else:
+                return raw_rdd
 
         except ValueError as ve:
             logging.warning(ve)

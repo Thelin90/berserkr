@@ -17,4 +17,3 @@ class TestRawToParquet(PySparkUnitTest):
 
     def test_load(self):
         pass
-
