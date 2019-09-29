@@ -23,6 +23,7 @@ class DistributedS3Reader(object):
         aws_access_key_id: str,
         aws_secret_access_key: str,
         signature_version: str,
+        raw_format: str,
     ) -> RDD:
         """Function fetches s3 files in a distributed fashion, since S3 does not act as HDFS textFile can't
         be trusted. Returns the data as a pyspark RDD without its header.
@@ -33,6 +34,7 @@ class DistributedS3Reader(object):
         :param aws_access_key_id:
         :param aws_secret_access_key:
         :param signature_version:
+        :param raw_format:
         :return: pyspark RDD
         """
         try:
@@ -57,7 +59,8 @@ class DistributedS3Reader(object):
                     endpoint_url=endpoint_url,
                     aws_access_key_id=aws_access_key_id,
                     aws_secret_access_key=aws_secret_access_key,
-                    signature_version=signature_version
+                    signature_version=signature_version,
+                    raw_format=raw_format,
                 )
             )
 

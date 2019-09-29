@@ -2,9 +2,13 @@ import boto3
 import os
 
 from pyspark import SparkContext
-from src.helpers.subprocesses.decompress import decompress_lzo
 from botocore.client import Config
 from typing import List
+
+from src.helpers.subprocesses.decompress import (
+    decompress_csv,
+    decompress_json,
+)
 
 
 def distributed_fetch(
@@ -14,6 +18,7 @@ def distributed_fetch(
     aws_access_key_id: str,
     aws_secret_access_key: str,
     signature_version: str,
+    raw_format: str,
 ) -> List[str]:
     """Function fetches file from s3/Minio bucket
     :rtype: object
@@ -23,6 +28,7 @@ def distributed_fetch(
     :param aws_access_key_id: access key for AWS account
     :param aws_secret_access_key: secret key for AWS account
     :param signature_version: AWS signature version
+    :param raw_format: what type of format of the raw file, ex: json, csv
     """
 
     base_path: str = os.path.basename(filepath)
@@ -39,7 +45,12 @@ def distributed_fetch(
         base_path,
     )
 
-    return decompress_lzo(base_path)
+    if 'csv' in raw_format:
+        return decompress_csv(base_path)
+    if 'json' in raw_format:
+        return decompress_json(base_path)
+    else:
+        raise ValueError(f"{raw_format} can't be processed")
 
 
 def delete_bucket_data(sc: SparkContext, s3_url: str) -> None:

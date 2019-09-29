@@ -50,6 +50,7 @@ rtp = RawToParquet(
     aws_secret_access_key=aws_secret_access_key,
     signature_version=signature_version,
     schema=OnlineRetailSchema.INITIAL_SCHEMA,
+    raw_format='csv',
 )
 
 # extract data

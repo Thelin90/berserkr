@@ -28,6 +28,7 @@ class RawToParquet(object):
             aws_access_key_id: str,
             aws_secret_access_key: str,
             signature_version: str,
+            raw_format: str,
             schema: StructType
     ):
         self.spark_session: SparkSession = spark_session
@@ -37,6 +38,7 @@ class RawToParquet(object):
         self.aws_access_key_id: str = aws_access_key_id
         self.aws_secret_access_key: str = aws_secret_access_key
         self.signature_version: str = signature_version
+        self.raw_format: str = raw_format
         self.schema: StructType = schema
         self.raw_rdd: RDD = self.spark_session.sparkContext.emptyRDD()
         self.df: DataFrame = self.spark_session.createDataFrame(self.raw_rdd, OnlineRetailSchema.EMPTY_SCHEMA)
@@ -56,6 +58,7 @@ class RawToParquet(object):
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             signature_version=self.signature_version,
+            raw_format=self.raw_format,
         )
 
     def transform_online_retail(self, raw_rdd: RDD) -> DataFrame:
@@ -94,10 +97,10 @@ class RawToParquet(object):
         sc = self.spark_session.sparkContext
 
         # delete data from bucket
-        delete_bucket_data(
-            sc=sc,
-            s3_url=s3_url,
-        )
+       # delete_bucket_data(
+       #     sc=sc,
+       #     s3_url=s3_url,
+       # )
 
         # raw to parquet dataframe schema
         raw_df.printSchema()
@@ -109,4 +112,4 @@ class RawToParquet(object):
         # write table to S3
         # https://medium.com/@mrpowers/managing-spark-partitions-with-coalesce-and-repartition-4050c57ad5c4
         # TODO: enable LZO compression https://github.com/twitter/hadoop-lzo
-        raw_df.coalesce(1).write.format("delta").save(s3_url)
+        raw_df.coalesce(1).write.format("delta").mode("overwrite").save(s3_url)

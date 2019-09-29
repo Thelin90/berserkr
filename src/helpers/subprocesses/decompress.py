@@ -7,21 +7,27 @@ import re
 from typing import List
 
 
-def decompress_lzo(file) -> List[str]:
+def lzop_subprocess(file):
+    return subprocess.run(
+        f'lzop -cd {file}',
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+
+def decompress_json(file) -> List[str]:
+    pass
+
+
+def decompress_csv(file) -> List[str]:
     """Decompress lzo file, see https://www.lzop.org/lzop_man.php
 
     :param file: file to decompress
     :return: the output from the decompressed file
     """
 
-    # with run() no need to take care of communicate since
-    # it is built in, nice!
-    p = subprocess.run(
-        f'lzop -cd {file}',
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    p = lzop_subprocess(file)
 
     if p.returncode != 0:
         raise ValueError(f'{p.returncode}:{p.stderr}')
