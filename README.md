@@ -27,7 +27,6 @@ In this project the work is done in batches.
 #### LZO
 
 Aimed at being very fast, lzop produces files slightly larger than gzip while only requiring a tenth of the CPU use and 
-Aimed at being veryls fast, lzop produces files slightly larger than gzip while only requiring a tenth of the CPU use and 
 only slightly higher memory utilization, lzop is one of the fastest compressors available.
 
 ## PySpark

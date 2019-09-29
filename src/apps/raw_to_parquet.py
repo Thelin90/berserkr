@@ -1,10 +1,7 @@
-from datetime import datetime
-
 from pyspark import RDD
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import StructType
 
-from src.helpers.aws.s3_specific import delete_bucket_data
 from src.modules.schemas import OnlineRetailSchema
 from src.helpers.aws.distributed_read_s3 import DistributedS3Reader
 
@@ -29,6 +26,7 @@ class RawToParquet(object):
             aws_secret_access_key: str,
             signature_version: str,
             raw_format: str,
+            transform_call,
             schema: StructType
     ):
         self.spark_session: SparkSession = spark_session
@@ -40,6 +38,7 @@ class RawToParquet(object):
         self.signature_version: str = signature_version
         self.raw_format: str = raw_format
         self.schema: StructType = schema
+        self.transform_call = transform_call
         self.raw_rdd: RDD = self.spark_session.sparkContext.emptyRDD()
         self.df: DataFrame = self.spark_session.createDataFrame(self.raw_rdd, OnlineRetailSchema.EMPTY_SCHEMA)
 
@@ -61,53 +60,38 @@ class RawToParquet(object):
             raw_format=self.raw_format,
         )
 
-    def transform_online_retail(self, raw_rdd: RDD) -> DataFrame:
-        """Method to transform online retail dataset to its correct dataformats, specific
-        for online retail
-
-        :return:
-        """
-
-        # initial transformation of the raw RDD
-        raw_rdd = raw_rdd.map(lambda retail: (
-            retail[0],  # InvoiceNo
-            retail[1],  # StockCode
-            retail[2] if retail[2] != '' else None,  # Description
-            int(retail[3]),  # Quantity
-            datetime.strptime(retail[4], '%d/%m/%Y %H:%M') if
-            int(retail[4].split('/')[1]) < MAX_MONTH
-            else datetime.strptime(retail[4], '%m/%d/%Y %H:%M'),  # InvoiceDate
-            float(retail[5]),  # UnitPrice
-            int(retail[6]) if retail[6] != '' else None,  # CustomerID
-            retail[7] if retail[7] != '' else None)  # Country
+    def transform(self, rdd: RDD) -> DataFrame:
+        return self.transform_call(
+            sc=self.spark_session,
+            raw_rdd=rdd,
+            schema=self.schema,
+            max_month=MAX_MONTH,
         )
 
-        return self.spark_session.createDataFrame(
-            raw_rdd,
-            schema=self.schema
+    def load(self, raw_df: DataFrame) -> None:
+        """Method to load data as parquet to S3
+
+        Note, if needed, the spark session can delete files in the bucket with this code:
+
+        from src.helpers.aws.s3_specific import delete_bucket_data
+
+        delete_bucket_data(
+            sc=self.spark_session.sparkContext,
+            s3_url=s3_url,
         )
 
-    def load_online_retail(self, raw_df: DataFrame) -> None:
-        """Method to load data as parquet to S3, specific for online retail
+        Also another note, use when necessary
+
+        number_of_partitions = sc.defaultParallelism * 4
+        raw_df = raw_df.repartition(number_of_partitions)
 
         :param raw_df:
         :return:
         """
         s3_url = f's3a://{self.parquet_s3_bucket}/'
-        sc = self.spark_session.sparkContext
-
-        # delete data from bucket
-       # delete_bucket_data(
-       #     sc=sc,
-       #     s3_url=s3_url,
-       # )
 
         # raw to parquet dataframe schema
         raw_df.printSchema()
-
-        # use when necessary
-        # number_of_partitions = sc.defaultParallelism * 4
-        # raw_df = raw_df.repartition(number_of_partitions)
 
         # write table to S3
         # https://medium.com/@mrpowers/managing-spark-partitions-with-coalesce-and-repartition-4050c57ad5c4

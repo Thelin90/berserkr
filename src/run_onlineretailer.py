@@ -9,9 +9,10 @@ from environs import Env
 from pyspark import RDD
 from pyspark.sql import DataFrame
 
-from src.spark_session import InitSpark
+from src.apps.spark_session import InitSpark
 from src.apps.raw_to_parquet import RawToParquet
 from src.modules.schemas import OnlineRetailSchema
+from src.helpers.online_retail.transform import transform_online_retail
 
 # initialise Env
 env: Env = Env()
@@ -50,6 +51,7 @@ rtp = RawToParquet(
     aws_secret_access_key=aws_secret_access_key,
     signature_version=signature_version,
     schema=OnlineRetailSchema.INITIAL_SCHEMA,
+    transform_call=transform_online_retail,
     raw_format='csv',
 )
 
@@ -57,10 +59,10 @@ rtp = RawToParquet(
 raw_rdd: RDD = rtp.extract()
 
 # transform data
-raw_df: DataFrame = rtp.transform_online_retail(raw_rdd)
+raw_df: DataFrame = rtp.transform(raw_rdd)
 
 # load data to S3 in parquet format
-rtp.load_online_retail(raw_df)
+rtp.load(raw_df)
 
 # stop spark session
 default_spark_session.stop()
