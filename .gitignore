@@ -8,6 +8,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# MinIO
+tools/docker/test/.minio/data/.minio.sys/*
+tools/docker/test/.minio/data/onlineretailparquet/*
+
 # C extensions
 *.so
 

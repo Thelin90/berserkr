@@ -1,9 +1,14 @@
 import boto3
 import os
 
-from src.helpers.subprocesses.decompress import decompress_lzo
+from pyspark import SparkContext
 from botocore.client import Config
 from typing import List
+
+from src.helpers.subprocesses.decompress import (
+    decompress_csv,
+    decompress_json,
+)
 
 
 def distributed_fetch(
@@ -13,6 +18,7 @@ def distributed_fetch(
     aws_access_key_id: str,
     aws_secret_access_key: str,
     signature_version: str,
+    raw_format: str,
 ) -> List[str]:
     """Function fetches file from s3/Minio bucket
     :rtype: object
@@ -22,6 +28,7 @@ def distributed_fetch(
     :param aws_access_key_id: access key for AWS account
     :param aws_secret_access_key: secret key for AWS account
     :param signature_version: AWS signature version
+    :param raw_format: what type of format of the raw file, ex: json, csv
     """
 
     base_path: str = os.path.basename(filepath)
@@ -38,7 +45,33 @@ def distributed_fetch(
         base_path,
     )
 
-    return decompress_lzo(base_path)
+    if 'csv' in raw_format:
+        return decompress_csv(base_path)
+    if 'json' in raw_format:
+        return decompress_json(base_path)
+    else:
+        raise ValueError(f"{raw_format} can't be processed")
+
+
+def delete_bucket_data(sc: SparkContext, s3_url: str) -> None:
+    """df.write.mode='overwrite' does not seem to work with parquet files O.o?
+
+    https://stackoverflow.com/questions/44991550/aws-emr-spark-error-writing-to-s3-illegalargumentexception-cannot-create-a
+    https://www.quora.com/How-do-you-overwrite-the-output-directory-when-using-PySpark
+    http://crazyslate.com/how-to-rename-hadoop-files-using-wildcards-while-patterns/
+
+    :param s3_url:
+    :param sc:
+    :return:
+    """
+    uri = sc._gateway.jvm.java.net.URI
+    path = sc._gateway.jvm.org.apache.hadoop.fs.Path
+    filesystem = sc._gateway.jvm.org.apache.hadoop.fs.FileSystem
+
+    fs = filesystem.get(uri(s3_url), sc._jsc.hadoopConfiguration())
+    file_status = fs.globStatus(path("/*"))
+    for status in file_status:
+        fs.delete(status.getPath(), True)
 
 
 def get_bucket_files(
