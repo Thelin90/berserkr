@@ -1,9 +1,9 @@
+import pyspark.sql.functions as F
 from pyspark import RDD
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
-
-from src.modules.schemas import OnlineRetailSchema
 from src.helpers.aws.distributed_read_s3 import DistributedS3Reader
+from src.modules.schemas import OnlineRetailSchema
 
 MAX_MONTH = 12
 
@@ -16,19 +16,12 @@ class RawToParquet(object):
 
     The machine learning app of the project will then read this file, and utilize pandas udf, featuretools
     """
-    def __init__(
-            self,
-            spark_session: SparkSession,
-            raw_s3_bucket: str,
-            parquet_s3_bucket: str,
-            aws_endpoint_url: str,
-            aws_access_key_id: str,
-            aws_secret_access_key: str,
-            signature_version: str,
-            raw_format: str,
-            transform_call,
-            schema: StructType
-    ):
+
+    def __init__(self, spark_session: SparkSession, raw_s3_bucket: str,
+                 parquet_s3_bucket: str, aws_endpoint_url: str,
+                 aws_access_key_id: str, aws_secret_access_key: str,
+                 signature_version: str, raw_format: str, transform_call,
+                 schema: StructType):
         self.spark_session: SparkSession = spark_session
         self.raw_s3_bucket: str = raw_s3_bucket
         self.parquet_s3_bucket: str = parquet_s3_bucket
@@ -40,7 +33,8 @@ class RawToParquet(object):
         self.schema: StructType = schema
         self.transform_call = transform_call
         self.raw_rdd: RDD = self.spark_session.sparkContext.emptyRDD()
-        self.df: DataFrame = self.spark_session.createDataFrame(self.raw_rdd, OnlineRetailSchema.EMPTY_SCHEMA)
+        self.df: DataFrame = self.spark_session.createDataFrame(
+            self.raw_rdd, OnlineRetailSchema.EMPTY_SCHEMA)
 
     def extract(self) -> RDD:
         """Method to extract dataset distributed, generic
@@ -48,8 +42,7 @@ class RawToParquet(object):
         :return:
         """
         dist_s3_reader: DistributedS3Reader = DistributedS3Reader(
-            spark_context=self.spark_session.sparkContext
-        )
+            spark_context=self.spark_session.sparkContext)
 
         return dist_s3_reader.distributed_read_from_s3(
             s3_bucket=self.raw_s3_bucket,
@@ -90,10 +83,14 @@ class RawToParquet(object):
         """
         s3_url = f's3a://{self.parquet_s3_bucket}/'
 
+        raw_df = raw_df.withColumn('new_column', F.lit(0))
+
         # raw to parquet dataframe schema
         raw_df.printSchema()
 
         # write table to S3
         # https://medium.com/@mrpowers/managing-spark-partitions-with-coalesce-and-repartition-4050c57ad5c4
         # TODO: enable LZO compression https://github.com/twitter/hadoop-lzo
-        raw_df.coalesce(1).write.format("delta").mode("overwrite").save(s3_url)
+        raw_df.coalesce(1).write.option(
+            "mergeSchema",
+            "true").format("delta").mode("overwrite").save(s3_url)
