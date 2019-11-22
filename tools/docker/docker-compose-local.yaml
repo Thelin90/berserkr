@@ -1,0 +1,50 @@
+version: "3.7"
+services:
+  # local redis
+  redis:
+    image: redis:5.0.5
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/var/lib/redis/data
+  # local postgres
+  postgres:
+    image: "postgres:11.3"
+    container_name: "postgres"
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+  # local airflow
+  airflow:
+      build:
+        context: ../../
+        dockerfile: Dockerfile.airflow            
+      environment:
+        - AIRFLOW_HOME=/usr/local/airflow
+        - AIRFLOW__CORE__DAGS_FOLDER=/usr/local/airflow/dags
+        - AIRFLOW__CORE__LOAD_EXAMPLES=False
+        - AIRFLOW__CORE__PARALLELISM=1
+      ports:
+        - 8080:8080
+      volumes:
+        - ./airflow:/usr/local/airflow/dags
+      links:
+      - redis
+      - postgres
+      - minio
+      depends_on:
+      - redis
+      - postgres
+      - minio
+      restart: on-failure
+      init: true
+      entrypoint: >
+      /bin/bash -c "
+        ./pg_check.sh
+        airflow initdb && (airflow scheduler & airflow webserver -p 8080 & wait)
+      "
