@@ -33,6 +33,7 @@ services:
         - 8080:8080
       volumes:
         - ./airflow:/usr/local/airflow/dags
+        - ./airflow.cfg:/usr/local/airflow/airflow.cfg
       links:
       - redis
       - postgres
