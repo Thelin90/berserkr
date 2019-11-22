@@ -1,0 +1,13 @@
+FROM python:3
+
+COPY requirements.airflow.txt /tmp/requirements.txt
+
+RUN pip install -r /tmp/requirements.txt
+
+RUN mkdir -p /usr/local/airflow
+
+WORKDIR /usr/local/airflow
+
+ENTRYPOINT ["airflow"]
+
+CMD ["run"]
